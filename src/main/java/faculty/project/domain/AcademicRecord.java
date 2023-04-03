@@ -16,6 +16,10 @@ public class AcademicRecord {
         return grade;
     }
 
+    public void setGrade(Float grade) {
+        this.grade = grade;
+    }
+
     public int getYear() {
         return year;
     }

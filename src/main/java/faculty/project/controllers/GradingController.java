@@ -66,7 +66,8 @@ public class GradingController implements Controller {
       public Student fromString(String string) {
         return null;
       }
-    });
+    }
+    );
 
     comboSubjects.setConverter(new StringConverter<>() {
       @Override
@@ -96,6 +97,7 @@ public class GradingController implements Controller {
         List<Student> studentList = bl.getUngradedStudentsEnrolledIn(subject);
         students.setAll(studentList);
         comboStudents.setItems(students);
+        System.out.println("Students of the subject: " + students.toString());
       }
     });
 

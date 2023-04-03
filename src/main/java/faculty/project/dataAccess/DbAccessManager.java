@@ -5,9 +5,7 @@ import faculty.project.domain.*;
 import faculty.project.exceptions.UnknownUser;
 
 import java.sql.*;
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.List;
+import java.util.*;
 
 public class DbAccessManager {
 
@@ -139,7 +137,7 @@ public class DbAccessManager {
         for (AcademicRecord academicRecord : student.getAcademicRecords()) {
             Subject subject = academicRecord.getSubject();
 
-            sql = "INSERT INTO academic_record (student_id, subject_id, grade, year, teacher_id) VALUES(?,?,?,?,?)";
+            sql = "INSERT INTO academic_record (student_id, subject_id, grade, year, teacher_id, id) VALUES(?,?,?,?,?,?)";
             try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
                 pstmt.setInt(1, student.getDni());
                 pstmt.setInt(2, subject.getId());
@@ -240,7 +238,7 @@ public class DbAccessManager {
             pstmt.setInt(1, subject.getId());
             pstmt.setInt(2, currentYear);
             ResultSet rs = pstmt.executeQuery();
-            if (rs.next()) {
+            while (rs.next()) {
                 String studentId = rs.getString("student_id");
                 students.add(getStudent(studentId));
             }
@@ -284,12 +282,60 @@ public class DbAccessManager {
      * @return DB successfully updated
      */
     public boolean gradeStudent(Student student, Subject subject, float grade, Teacher teacher) {
-        // TBD
-        return false;
+
+        assign(subject, teacher);
+
+        boolean result = false;
+
+        String sql = "UPDATE user SET earnedCredits = ?1 WHERE dni = ?2";
+        try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            if (hasPassed(subject, student) && student.isEligibleForCredits(subject.getCreditNumber())) {
+                student.setEarnedCredits(student.getEarnedCredits() + subject.getCreditNumber());
+                pstmt.setInt(2, student.getDni());
+                pstmt.setFloat(1, student.getEarnedCredits());
+                pstmt.executeUpdate();
+                result = true;
+            }
+
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+
+
+        student.enroll(subject);
+        String sql2 = "UPDATE academic_record SET grade = ?1 WHERE student_id = ?2 AND subject_id = ?3";
+        try (PreparedStatement pstmt = conn.prepareStatement(sql2)) {
+
+            for (AcademicRecord academicRecord : student.getAcademicRecords()) {
+
+                pstmt.setInt(2, student.getDni());
+                pstmt.setInt(3, subject.getId());
+                pstmt.setFloat(1, grade);
+                result = true;
+
+                pstmt.executeUpdate();
+            }
+
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+
+        return result;
     }
 
     public void assign(Subject subject, Teacher teacher) {
-        // TBD
+
+        String sql2 = "UPDATE academic_record SET teacher_id = ?1 WHERE subject_id = ?2";
+        try (PreparedStatement pstmt = conn.prepareStatement(sql2)) {
+
+            pstmt.setInt(2, subject.getId());
+            pstmt.setInt(1, teacher.getDni());
+
+            pstmt.executeUpdate();
+
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     public boolean isFull(Subject subject) {
@@ -299,8 +345,7 @@ public class DbAccessManager {
     }
 
     public boolean hasPassed(Subject subject, Student student) {
-        // TBD
-        return false;
+        return true;
 
     }
 

@@ -107,9 +107,8 @@ public class BlFacadeImplementation implements BlFacade {
    */
   @Override
   public boolean isEligible(Subject subject) {
-    // TBD
-    boolean eligible = false;
-    return eligible;
+    Student currentStudent = (Student)currentUser;
+    return currentStudent.isEligibleForCredits(subject.getCreditNumber());
   }
 
   @Override

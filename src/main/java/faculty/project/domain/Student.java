@@ -8,6 +8,7 @@ public class Student extends User {
   private static final int MAXCREDITSDEGREE = 255;
   private int earnedCredits = 0;
 
+
   private Collection<AcademicRecord> academicRecords;
 
 
@@ -25,6 +26,8 @@ public class Student extends User {
   public void enroll(Subject subject) {
     academicRecords.add(new AcademicRecord(subject, this));
   }
+
+
 
   public int getEarnedCredits() {
     return earnedCredits;
